@@ -1,5 +1,5 @@
 /**
- Copyright (c) 2016-present, Facebook, Inc. All rights reserved.
+ Copyright (c) Facebook, Inc. and its affiliates.
  
  The examples provided by Facebook are for non-commercial testing and evaluation
  purposes only. Facebook reserves all rights not expressly granted.
@@ -83,7 +83,7 @@ final class MixedDataViewControllerUITests: UITestCase {
     }
 
     private func expandableSectionElement() -> XCUIElement {
-        return XCUIApplication().collectionViews.cells.staticTexts["Maecenas faucibus mollis interdum. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit."]
+        return XCUIApplication().collectionViews.cells.staticTexts.element(matching: NSPredicate(format: "label == %@", "Maecenas faucibus mollis interdum. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit."))
     }
 
     private func userSectionElement() -> XCUIElement {

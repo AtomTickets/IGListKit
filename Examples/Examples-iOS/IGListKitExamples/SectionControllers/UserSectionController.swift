@@ -1,5 +1,5 @@
 /**
- Copyright (c) 2016-present, Facebook, Inc. All rights reserved.
+ Copyright (c) Facebook, Inc. and its affiliates.
 
  The examples provided by Facebook are for non-commercial testing and evaluation
  purposes only. Facebook reserves all rights not expressly granted.
@@ -18,6 +18,12 @@ import UIKit
 final class UserSectionController: ListSectionController {
 
     private var user: User?
+    private let isReorderable: Bool
+
+    required init(isReorderable: Bool = false) {
+        self.isReorderable = isReorderable
+        super.init()
+    }
 
     override func sizeForItem(at index: Int) -> CGSize {
         return CGSize(width: collectionContext!.containerSize.width, height: 55)
@@ -36,4 +42,7 @@ final class UserSectionController: ListSectionController {
         self.user = object as? User
     }
 
+    override func canMoveItem(at index: Int) -> Bool {
+        return isReorderable
+    }
 }
