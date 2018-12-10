@@ -12,8 +12,8 @@
  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import UIKit
 import IGListKit
+import UIKit
 
 final class GridItem: NSObject {
 
@@ -28,15 +28,15 @@ final class GridItem: NSObject {
 }
 
 extension GridItem: ListDiffable {
-    
+
     func diffIdentifier() -> NSObjectProtocol {
         return self
     }
-    
+
     func isEqual(toDiffableObject object: ListDiffable?) -> Bool {
         return self === object ? true : self.isEqual(object)
     }
-    
+
 }
 
 final class GridSectionController: ListSectionController {
@@ -60,7 +60,9 @@ final class GridSectionController: ListSectionController {
     }
 
     override func cellForItem(at index: Int) -> UICollectionViewCell {
-        let cell = collectionContext!.dequeueReusableCell(of: CenterLabelCell.self, for: self, at: index) as! CenterLabelCell
+        guard let cell = collectionContext?.dequeueReusableCell(of: CenterLabelCell.self, for: self, at: index) as? CenterLabelCell else {
+            fatalError()
+        }
         cell.text = "\(index + 1)"
         cell.backgroundColor = object?.color
         return cell
