@@ -12,7 +12,6 @@
 #import <vector>
 
 #import <IGListKit/IGListCompatibility.h>
-#import <IGListKit/IGListMacros.h>
 #import <IGListKit/IGListExperiments.h>
 
 #import "IGListIndexPathResultInternal.h"
@@ -87,7 +86,7 @@ static NSArray<NSIndexPath *> *indexPathsAndPopulateMap(__unsafe_unretained NSAr
     [array enumerateObjectsUsingBlock:^(id<IGListDiffable> obj, NSUInteger idx, BOOL *stop) {
         NSIndexPath *path = [NSIndexPath indexPathForItem:idx inSection:section];
         [paths addObject:path];
-        [map setObject:paths forKey:[obj diffIdentifier]];
+        [map setObject:path forKey:[obj diffIdentifier]];
     }];
     return paths;
 }
@@ -237,9 +236,9 @@ static id IGListDiffing(BOOL returnIndexPaths,
         mDeletes = [NSMutableArray<NSIndexPath *> new];
     } else {
         mInserts = [NSMutableIndexSet new];
+        mMoves = [NSMutableArray<IGListMoveIndex *> new];
         mUpdates = [NSMutableIndexSet new];
         mDeletes = [NSMutableIndexSet new];
-        mMoves = [NSMutableArray<IGListMoveIndex *> new];
     }
 
     // track offsets from deleted items to calculate where items have moved

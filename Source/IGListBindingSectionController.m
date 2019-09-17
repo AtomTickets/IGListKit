@@ -8,10 +8,7 @@
 #import "IGListBindingSectionController.h"
 
 #import <IGListKit/IGListAssert.h>
-#import <IGListKit/IGListDiffable.h>
-#import <IGListKit/IGListDiff.h>
 #import <IGListKit/IGListBindable.h>
-#import <IGListKit/IGListAdapterUpdater.h>
 
 #import "IGListArrayUtilsInternal.h"
 
@@ -73,7 +70,9 @@ typedef NS_ENUM(NSInteger, IGListDiffingSectionState) {
             }
         }];
         
-        
+        if (IGListExperimentEnabled(self.collectionContext.experiments, IGListExperimentInvalidateLayoutForUpdates)) {
+            [batchContext invalidateLayoutInSectionController:self atIndexes:result.updates];
+        }
         [batchContext deleteInSectionController:self atIndexes:result.deletes];
         [batchContext insertInSectionController:self atIndexes:result.inserts];
         
@@ -123,6 +122,16 @@ typedef NS_ENUM(NSInteger, IGListDiffingSectionState) {
 #endif
         [self updateAnimated:YES completion:nil];
     }
+}
+
+- (void)moveObjectFromIndex:(NSInteger)sourceIndex toIndex:(NSInteger)destinationIndex {
+    NSMutableArray *viewModels = [self.viewModels mutableCopy];
+    
+    id modelAtSource = [viewModels objectAtIndex:sourceIndex];
+    [viewModels removeObjectAtIndex:sourceIndex];
+    [viewModels insertObject:modelAtSource atIndex:destinationIndex];
+    
+    self.viewModels = viewModels;
 }
 
 - (void)didSelectItemAtIndex:(NSInteger)index {
