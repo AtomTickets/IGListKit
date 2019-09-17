@@ -9,8 +9,6 @@
 #import "IGListAdapterUpdaterInternal.h"
 
 #import <IGListKit/IGListAssert.h>
-#import <IGListKit/IGListBatchUpdateData.h>
-#import <IGListKit/IGListDiff.h>
 #import <IGListKit/IGListIndexSetResultInternal.h>
 #import <IGListKit/IGListMoveIndexPathInternal.h>
 
@@ -131,8 +129,6 @@
         executeCompletionBlocks(NO);
         return;
     }
-
-    IGAssert(objectsWithDuplicateIdentifiersRemoved(fromObjects).count == fromObjects.count, @"The fromObjects has duplicate identifiers (it should already be dedupepd at this point).");
     
     NSArray *toObjects = nil;
     if (toObjectsBlock != nil) {
@@ -176,10 +172,8 @@
         [self _cleanStateAfterUpdates];
         [self _performBatchUpdatesItemBlockApplied];
         [collectionView reloadData];
-        if (!IGListExperimentEnabled(self.experiments, IGListExperimentSkipLayout)
-            || collectionView.window != nil) {
-            [collectionView layoutIfNeeded];
-        }
+        [collectionView layoutIfNeeded];
+
         executeCompletionBlocks(YES);
     };
 
@@ -267,9 +261,8 @@ willPerformBatchUpdatesWithCollectionView:collectionView
         }
     };
 
-    // temporary test to try out background diffing
     if (IGListExperimentEnabled(experiments, IGListExperimentBackgroundDiffing)) {
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
             IGListIndexSetResult *result = performDiff();
             dispatch_async(dispatch_get_main_queue(), ^{
                 performUpdate(result);
@@ -421,15 +414,19 @@ static NSArray<NSIndexPath *> *convertSectionReloadToItemUpdates(NSIndexSet *sec
 
 - (void)_queueUpdateWithCollectionViewBlock:(IGListCollectionViewBlock)collectionViewBlock {
     IGAssertMainThread();
+    
     __weak __typeof__(self) weakSelf = self;
-
-    // dispatch after a given amount of time to coalesce other updates and execute as one
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, self.coalescanceTime * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+    
+    // dispatch_async to give the main queue time to collect more batch updates so that a minimum amount of work
+    // (diffing, etc) is done on main. dispatch_async does not garauntee a full runloop turn will pass though.
+    // see -performUpdateWithCollectionView:fromObjects:toObjects:animated:objectTransitionBlock:completion: for more
+    // details on how coalescence is done.
+    dispatch_async(dispatch_get_main_queue(), ^{
         if (weakSelf.state != IGListBatchUpdateStateIdle
             || ![weakSelf hasChanges]) {
             return;
         }
-
+        
         if (weakSelf.hasQueuedReloadData) {
             [weakSelf performReloadDataWithCollectionViewBlock:collectionViewBlock];
         } else {
